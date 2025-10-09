@@ -2,13 +2,8 @@
 
 This project sets up [LiteLLM](https://github.com/BerriAI/litellm) on AWS ECS using Fargate
 
-## 🎥 Videos
-
-### Deployment Demo
-[![Deployment Demo](https://img.youtube.com/vi/AmNYbFSP6t0/0.jpg)](https://youtu.be/AmNYbFSP6t0)
-
 ### Tutorial
-[Watch the full tutorial on Screen Studio](https://screen.studio/share/9JRqlF0h)
+[Watch the demo here](https://screen.studio/share/9JRqlF0h)
 
 ## 🚀 Quick Start
 
