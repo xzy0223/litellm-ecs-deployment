@@ -3,7 +3,8 @@
 This project sets up [LiteLLM](https://github.com/BerriAI/litellm) on AWS ECS using Fargate
 
 ### Tutorial
-<iframe src="https://screen.studio/share/9JRqlF0h" width="100%" height="400" frameborder="0" allowfullscreen></iframe>
+
+[🎥 Watch the demo here](https://screen.studio/share/9JRqlF0h)
 
 
 ## 🚀 Quick Start
