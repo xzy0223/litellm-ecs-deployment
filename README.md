@@ -6,37 +6,28 @@ This project sets up [LiteLLM](https://github.com/BerriAI/litellm) on AWS ECS us
 
 [🎥 Watch the demo here](https://screen.studio/share/9JRqlF0h)
 
+### Prerequisites
+
+- [AWS CLI](https://aws.amazon.com/cli/) configured with appropriate permissions
+- [Terraform](https://www.terraform.io/) v1.0+
+- [Docker](https://www.docker.com/) with buildx support
+- AWS account with:
+  - ECS, ECR, IAM, VPC permissions
+
 
 ## 🚀 Quick Start
 
 1. **Clone and Setup**
    ```bash
    git clone <your-repo-url>
-   cd litellm_ecs_tf
+   cd litellm_ecs-deployment
    ```
 
 2. **Configure AWS**
    - Install AWS CLI and configure your credentials
-   - Ensure you have permissions for ECS, ECR, IAM roles, VPC, etc.
-
-3. **Deploy**
-   ```bash
-   terraform init
-   terraform plan
-   terraform apply
-   ./build.sh  # Builds and deploys your custom LiteLLM image
-   ```
+   - Ensure you have permissions for ECS, ECR, IAM roles, VPC, etc
 
 your cluster should run the task definition in AWS console
-
-### prerequisites
-
-- [AWS CLI](https://aws.amazon.com/cli/) configured with appropriate permissions
-- [Terraform](https://www.terraform.io/) v1.0+
-- [Docker](https://www.docker.com/) with buildx support
-- AWS account with:
-  - ECS, ECR, IAM, VPC, ELB permissions
-  - Default VPC in us-east-1 region
 
 ### how it works
 
@@ -97,11 +88,12 @@ Modify `provider.tf` if using different region/profile.
    ```bash
    ./build.sh
    ```
-   This builds your Docker image on linux/amd64, pushes to ECR and triggers ECS deployment.
+   This builds your Docker image on linux/amd64, pushes to ECR and triggers ECS deployment. you can use this command to force an update to ECS service
 
 ## 🔍 Monitoring
 
 create a new directory in AWS Cloudwatch and add it to [taskdefinition.tf](taskdefinition.tf)
+
 example: "awslogs-group": "/ecs/litellm",
 
 view logs in cloudwatch 
