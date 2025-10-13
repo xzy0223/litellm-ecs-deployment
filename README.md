@@ -113,7 +113,11 @@ view logs in cloudwatch
 
 ## Scaling
 
-- **Scaling**: Adjust `desired_count` in `service.tf`
+- **Scaling**: 
+	- Adjust `desired_count` in `service.tf`
+	- Set cpu = num_workers
+	- Don't use static memory limits when you configure CPUs to scale
+
 - **Resources**: Modify CPU/memory in `taskdefinition.tf`
 - **Networking**: Update VPC/subnets in `vpc.tf`
 - **Health Checks**: Configure in ALB target group
