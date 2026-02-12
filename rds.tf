@@ -66,7 +66,7 @@ resource "aws_secretsmanager_secret_version" "db_password" {
 resource "aws_db_instance" "litellm_db" {
   identifier             = "litellm-postgres-db"
   engine                 = "postgres"
-  engine_version         = "16.4"
+  engine_version         = "16.11"
   instance_class         = "db.t3.micro"
   allocated_storage      = 20
   max_allocated_storage  = 100
