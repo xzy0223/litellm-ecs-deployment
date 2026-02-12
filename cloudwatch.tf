@@ -1,4 +1,4 @@
-resource "aws_cloudwatch_log_group" "/ecs/litellm" {
+resource "aws_cloudwatch_log_group" "litellm_ecs_logs" {
   name              = "/ecs/litellm" # create this directory in aws cloudwatch
   retention_in_days = 30
 

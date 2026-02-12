@@ -41,7 +41,19 @@ resource "aws_ecs_task_definition" "litellm_task" {
       },
       {
         "name": "DATABASE_URL",
-        "value": "your-postgres-db-url"
+        "value": "postgresql://${aws_db_instance.litellm_db.username}:${random_password.db_password.result}@${aws_db_instance.litellm_db.endpoint}/${aws_db_instance.litellm_db.db_name}"
+      },
+      {
+        "name": "REDIS_HOST",
+        "value": "${aws_elasticache_cluster.litellm_redis.cache_nodes[0].address}"
+      },
+      {
+        "name": "REDIS_PORT",
+        "value": "${aws_elasticache_cluster.litellm_redis.port}"
+      },
+      {
+        "name": "REDIS_URL",
+        "value": "redis://${aws_elasticache_cluster.litellm_redis.cache_nodes[0].address}:${aws_elasticache_cluster.litellm_redis.port}"
       }
     ],
     "secrets": [
