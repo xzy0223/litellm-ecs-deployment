@@ -42,10 +42,8 @@ general_settings:
   master_key: sk-1234
   # database_url: <your-postgres-db-url>  # Use DATABASE_URL env var instead
 
-  # Enable Web UI
+  # Enable Web UI (credentials set via UI_USERNAME and UI_PASSWORD env vars)
   ui: true
-  ui_username: admin
-  ui_password: os.environ/LITELLM_UI_PASSWORD  # Set via environment variable
 
 # load balancing
 router_settings: 

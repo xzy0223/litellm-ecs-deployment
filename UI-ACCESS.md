@@ -2,23 +2,67 @@
 
 ## 🌐 访问信息
 
-**URL**: http://litellm-alb-1512972369.us-east-1.elb.amazonaws.com/ui
+LiteLLM UI使用API key作为访问令牌，而非传统用户名/密码登录。
 
-**当前登录凭据**:
-- 用户名: `admin`
-- 密码: `admin123`
+### 方法1：使用Master Key（推荐）
+**直接访问URL**:
+```
+http://litellm-alb-1512972369.us-east-1.elb.amazonaws.com/ui?master_key=sk-1234
+```
+在浏览器中打开此URL即可直接访问管理界面。
 
-⚠️ **警告**: 这是默认密码，请在生产环境中立即修改！
+### 方法2：使用Admin User Key
+**已创建的Admin用户**:
+```
+http://litellm-alb-1512972369.us-east-1.elb.amazonaws.com/ui?userID=admin-user&token=sk-IuIcFmyyh4m7KbdukPQjJg
+```
 
-## 🔐 修改UI密码
+⚠️ **重要**: Master Key (sk-1234) 是默认值，生产环境中必须修改！
 
-### 方法1: 修改taskdefinition.tf（推荐）
+## 👥 创建新用户
 
-编辑 `taskdefinition.tf`:
+通过API创建新用户并获取访问令牌：
+
+### 创建管理员用户
+```bash
+curl -X POST http://litellm-alb-1512972369.us-east-1.elb.amazonaws.com/user/new \
+  -H "Authorization: Bearer sk-1234" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "user_id": "your-username",
+    "user_role": "proxy_admin"
+  }'
+```
+
+**响应示例**:
+```json
+{
+  "user_id": "your-username",
+  "user_role": "proxy_admin",
+  "key": "sk-xxxxxxxxxxxxx",
+  ...
+}
+```
+
+保存返回的 `key`，使用它访问UI：
+```
+http://litellm-alb-1512972369.us-east-1.elb.amazonaws.com/ui?userID=your-username&token=sk-xxxxxxxxxxxxx
+```
+
+### 用户角色说明
+- **proxy_admin**: 完全管理权限（查看所有数据、管理密钥、配置）
+- **internal_user**: 内部用户（可以调用API，查看自己的使用情况）
+- **team_member**: 团队成员（受限访问）
+
+## 🔐 安全管理
+
+### 修改Master Key（重要！）
+
+修改 `taskdefinition.tf` 中的 LITELLM_MASTER_KEY：
 ```terraform
 {
-  "name": "LITELLM_UI_PASSWORD",
-  "value": "your-secure-password-here"
+  "name": "LITELLM_MASTER_KEY",
+  "value": "sk-your-secure-random-key-here"
 }
 ```
 
@@ -29,33 +73,7 @@ terraform apply
 ./build.sh  # 重新部署
 ```
 
-### 方法2: 使用AWS Secrets Manager（更安全）
-
-1. 创建密钥:
-```bash
-aws secretsmanager create-secret \
-  --name litellm/ui-password \
-  --secret-string '{"LITELLM_UI_PASSWORD":"your-secure-password"}' \
-  --region us-east-1
-```
-
-2. 修改taskdefinition.tf，将环境变量改为secret:
-```terraform
-"secrets": [
-  # ... 其他secrets
-  {
-    "name": "LITELLM_UI_PASSWORD",
-    "valueFrom": "${aws_secretsmanager_secret.ui_password.arn}:LITELLM_UI_PASSWORD::"
-  }
-]
-```
-
-3. 添加secrets资源到secrets.tf:
-```terraform
-resource "aws_secretsmanager_secret" "ui_password" {
-  name = "litellm/ui-password"
-}
-```
+**注意**: 修改master key后，需要重新创建所有用户。
 
 ## 📊 Web界面功能
 
