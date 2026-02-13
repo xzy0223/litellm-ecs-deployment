@@ -29,6 +29,7 @@ resource "aws_ecs_service" "litellm_service" {
 
   depends_on = [
     aws_iam_role_policy_attachment.litellm_task_execution_role_policy,
+    aws_iam_role_policy.litellm_bedrock_permissions,
     aws_db_instance.litellm_db,
     aws_elasticache_cluster.litellm_redis,
     aws_nat_gateway.main  # Ensure NAT Gateway is ready for private subnet connectivity

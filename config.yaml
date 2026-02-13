@@ -1,5 +1,4 @@
 litellm_settings:
-  # callbacks: ["langfuse", "langfuse_otel"] # enable logging
   cache: true
   cache_params:
     type: "redis"
@@ -8,67 +7,14 @@ litellm_settings:
     ttl: 600  # cache for 10 minutes
 
 model_list:
-  - model_name: claude-3-5-sonnet-latest
-    litellm_params:
-      model: anthropic/claude-3-5-sonnet-latest
-      api_key: os.environ/ANTHROPIC_API_KEY
-
   - model_name: claude-bedrock
     litellm_params:
-      model: bedrock/anthropic.claude-3-5-sonnet-20241022-v2:0
-      aws_access_key_id: os.environ/AWS_ACCESS_KEY_ID
-      aws_secret_access_key: os.environ/AWS_SECRET_ACCESS_KEY
-      aws_region_name: us-west-2
+      model: os.environ/BEDROCK_MODEL_ID  # e.g., bedrock/anthropic.claude-3-5-sonnet-20241022-v2:0
+      aws_region_name: os.environ/AWS_REGION  # e.g., us-west-2
+      # Using ECS Task IAM Role for authentication (no explicit credentials needed)
     model_info:
       supports_computer_use: True
 
-  - model_name: codex-mini
-    litellm_params:
-      model: openai/codex-mini-latest
-      api_key: os.environ/OPENAI_API_KEY
-
-  - model_name: gpt-5-codex
-    litellm_params:
-      model: openai/gpt-5-codex
-      api_key: os.environ/OPENAI_API_KEY
-      mode: responses
-
-  - model_name: gpt-5
-    litellm_params:
-      model: openai/gpt-5
-      api_key: os.environ/OPENAI_API_KEY
-
 general_settings:
-  master_key: sk-1234
-  # database_url: <your-postgres-db-url>  # Use DATABASE_URL env var instead
-
-  # Enable Web UI (credentials set via UI_USERNAME and UI_PASSWORD env vars)
+  master_key: os.environ/LITELLM_MASTER_KEY
   ui: true
-
-# load balancing
-router_settings: 
-  routing_strategy: simple-shuffle
-  fallbacks: [
-    {"gpt-5-codex": ["o3-mini"]},
-    {"gpt-5": ["gpt-5-nano"]},
-  ]
-
-# add mcp servers
-# mcp_servers:
-#   atlassian_mcp:
-#     url: "https://mcp.atlassian.com/v1"
-#     transport: http
-#     auth_type: oauth2
-#     authorization_url: <your-auth-url>
-#     token_url: https://auth.atlassian.com/oauth/token
-#     client_id: os.environ/ATLASSIAN_CLIENT_ID
-#     client_secret: os.environ/ATLASSIAN_CLIENT_SECRET
-#     scopes: [ "read:jira-work",
-#       "manage:jira-project",
-#       "manage:jira-configuration",
-#       "read:jira-user",
-#       "write:jira-work",
-#       "manage:jira-webhook",
-#       "manage:jira-data-provider"
-#     ]
-#     auto_refresh: true

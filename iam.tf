@@ -1,3 +1,4 @@
+# ECS Task Execution Role (for ECS to pull images, write logs, etc.)
 resource "aws_iam_role" "litellm_task_execution_role" {
   name               = "litellmTaskExecutionRole"
   assume_role_policy = data.aws_iam_policy_document.assume_role_policy.json
@@ -8,14 +9,20 @@ resource "aws_iam_role_policy_attachment" "litellm_task_execution_role_policy" {
   policy_arn = "arn:aws:iam::aws:policy/service-role/AmazonECSTaskExecutionRolePolicy"
 }
 
-resource "aws_iam_role_policy" "litellm_permissions" {
-  name = "LiteLLMPermissionsPolicy"
-  role = aws_iam_role.litellm_task_execution_role.id
+# ECS Task Role (for application to access AWS services like Bedrock)
+resource "aws_iam_role" "litellm_task_role" {
+  name               = "litellmTaskRole"
+  assume_role_policy = data.aws_iam_policy_document.assume_role_policy.json
+}
+
+resource "aws_iam_role_policy" "litellm_bedrock_permissions" {
+  name = "LiteLLMBedrockPermissionsPolicy"
+  role = aws_iam_role.litellm_task_role.id
 
   policy = jsonencode({
     Version = "2012-10-17"
     Statement = [
-      # permissions for bedrock models
+      # Bedrock permissions for Claude models
       {
         Effect = "Allow"
         Action = [
@@ -26,21 +33,7 @@ resource "aws_iam_role_policy" "litellm_permissions" {
         ]
         Resource = "*"
       },
-      # s3 permissions for storage
-      {
-        Effect = "Allow"
-        Action = [
-          "s3:GetObject",
-          "s3:PutObject",
-          "s3:DeleteObject",
-          "s3:ListBucket"
-        ]
-        Resource = [
-          "arn:aws:s3:::litellm-very-cool-bucket",
-          "arn:aws:s3:::litellm-very-cool-bucket/*"
-        ]
-      },
-      # cloud watch permissions for logging and metrics
+      # CloudWatch permissions for application logging and metrics
       {
         Effect = "Allow"
         Action = [
@@ -57,31 +50,6 @@ resource "aws_iam_role_policy" "litellm_permissions" {
           "cloudwatch:PutMetricData"
         ]
         Resource = "*"
-      },
-      # ecr permissions
-      {
-        Effect = "Allow"
-        Action = [
-          "ecr:GetAuthorizationToken",
-          "ecr:BatchCheckLayerAvailability",
-          "ecr:GetDownloadUrlForLayer",
-          "ecr:BatchGetImage"
-        ]
-        Resource = "*"
-      },
-      # secrets manager permissions for api keys
-      {
-        Effect = "Allow"
-        Action = [
-          "secretsmanager:GetSecretValue"
-        ]
-        Resource = [
-          "${aws_secretsmanager_secret.aws_credentials.arn}",
-          "${aws_secretsmanager_secret.openai_key.arn}",
-          "${aws_secretsmanager_secret.anthropic_key.arn}",
-          "${aws_secretsmanager_secret.azure_key.arn}",
-          "${aws_secretsmanager_secret.gemini_key.arn}"
-        ]
       }
     ]
   })

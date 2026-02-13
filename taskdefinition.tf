@@ -5,6 +5,7 @@ resource "aws_ecs_task_definition" "litellm_task" {
   cpu                     = 4096
   memory                  = 8192
   execution_role_arn      = aws_iam_role.litellm_task_execution_role.arn
+  task_role_arn           = aws_iam_role.litellm_task_role.arn
 
   container_definitions = <<DEFINITION
 [
@@ -62,32 +63,14 @@ resource "aws_ecs_task_definition" "litellm_task" {
       {
         "name": "UI_PASSWORD",
         "value": "admin123"
-      }
-    ],
-    "secrets": [
-      {
-        "name": "AWS_ACCESS_KEY_ID",
-        "valueFrom": "${aws_secretsmanager_secret.aws_credentials.arn}:AWS_ACCESS_KEY_ID::"
       },
       {
-        "name": "AWS_SECRET_ACCESS_KEY",
-        "valueFrom": "${aws_secretsmanager_secret.aws_credentials.arn}:AWS_SECRET_ACCESS_KEY::"
+        "name": "BEDROCK_MODEL_ID",
+        "value": "bedrock/anthropic.claude-3-5-sonnet-20241022-v2:0"
       },
       {
-        "name": "OPENAI_API_KEY",
-        "valueFrom": "${aws_secretsmanager_secret.openai_key.arn}:OPENAI_API_KEY::"
-      },
-      {
-        "name": "ANTHROPIC_API_KEY",
-        "valueFrom": "${aws_secretsmanager_secret.anthropic_key.arn}:ANTHROPIC_API_KEY::"
-      },
-      {
-        "name": "AZURE_API_KEY",
-        "valueFrom": "${aws_secretsmanager_secret.azure_key.arn}:AZURE_API_KEY::"
-      },
-      {
-        "name": "GEMINI_API_KEY",
-        "valueFrom": "${aws_secretsmanager_secret.gemini_key.arn}:GEMINI_API_KEY::"
+        "name": "AWS_REGION",
+        "value": "us-west-2"
       }
     ]
   }
