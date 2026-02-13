@@ -54,6 +54,10 @@ resource "aws_ecs_task_definition" "litellm_task" {
       {
         "name": "REDIS_URL",
         "value": "redis://${aws_elasticache_cluster.litellm_redis.cache_nodes[0].address}:${aws_elasticache_cluster.litellm_redis.port}"
+      },
+      {
+        "name": "LITELLM_UI_PASSWORD",
+        "value": "admin123"
       }
     ],
     "secrets": [
