@@ -16,6 +16,12 @@ resource "aws_ecs_service" "litellm_service" {
     assign_public_ip = true
   }
 
+  load_balancer {
+    target_group_arn = aws_lb_target_group.litellm_tg.arn
+    container_name   = "litellm_task"
+    container_port   = 4000
+  }
+
   health_check_grace_period_seconds = 300
 
   deployment_maximum_percent         = 200

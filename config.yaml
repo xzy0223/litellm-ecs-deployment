@@ -1,5 +1,5 @@
 litellm_settings:
-  callbacks: ["langfuse", "langfuse_otel"] # enable logging
+  # callbacks: ["langfuse", "langfuse_otel"] # enable logging
   cache: true
   cache_params:
     type: "redis"
@@ -40,7 +40,7 @@ model_list:
 
 general_settings:
   master_key: sk-1234
-  database_url: <your-postgres-db-url>
+  # database_url: <your-postgres-db-url>  # Use DATABASE_URL env var instead
 
 # load balancing
 router_settings: 
@@ -51,21 +51,21 @@ router_settings:
   ]
 
 # add mcp servers
-mcp_servers: 
-  atlassian_mcp:
-    url: "https://mcp.atlassian.com/v1"
-    transport: http
-    auth_type: oauth2
-    authorization_url: <your-auth-url>
-    token_url: https://auth.atlassian.com/oauth/token
-    client_id: os.environ/ATLASSIAN_CLIENT_ID
-    client_secret: os.environ/ATLASSIAN_CLIENT_SECRET
-    scopes: [ "read:jira-work",
-      "manage:jira-project",
-      "manage:jira-configuration",
-      "read:jira-user",
-      "write:jira-work",
-      "manage:jira-webhook",
-      "manage:jira-data-provider"
-    ]
-    auto_refresh: true
+# mcp_servers:
+#   atlassian_mcp:
+#     url: "https://mcp.atlassian.com/v1"
+#     transport: http
+#     auth_type: oauth2
+#     authorization_url: <your-auth-url>
+#     token_url: https://auth.atlassian.com/oauth/token
+#     client_id: os.environ/ATLASSIAN_CLIENT_ID
+#     client_secret: os.environ/ATLASSIAN_CLIENT_SECRET
+#     scopes: [ "read:jira-work",
+#       "manage:jira-project",
+#       "manage:jira-configuration",
+#       "read:jira-user",
+#       "write:jira-work",
+#       "manage:jira-webhook",
+#       "manage:jira-data-provider"
+#     ]
+#     auto_refresh: true

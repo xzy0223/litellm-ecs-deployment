@@ -41,7 +41,7 @@ resource "aws_ecs_task_definition" "litellm_task" {
       },
       {
         "name": "DATABASE_URL",
-        "value": "postgresql://${aws_db_instance.litellm_db.username}:${random_password.db_password.result}@${aws_db_instance.litellm_db.endpoint}/${aws_db_instance.litellm_db.db_name}"
+        "value": "postgresql://${aws_db_instance.litellm_db.username}:${urlencode(random_password.db_password.result)}@${aws_db_instance.litellm_db.endpoint}/${aws_db_instance.litellm_db.db_name}"
       },
       {
         "name": "REDIS_HOST",

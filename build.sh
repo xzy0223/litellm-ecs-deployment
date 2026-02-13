@@ -17,7 +17,7 @@ REPO_URL="$ACCOUNT_ID.dkr.ecr.$AWS_REGION.amazonaws.com/$REPO_NAME"
 aws ecr get-login-password --region $AWS_REGION --profile $AWS_PROFILE | docker login --username AWS --password-stdin $REPO_URL
 
 # build on linux/amd64 platform ;; check your ecs configuration to selcet platform
-docker buildx build --platform linux/amd64 -t $REPO_NAME:$IMAGE_TAG --load .
+docker build --platform linux/amd64 -t $REPO_NAME:$IMAGE_TAG .
 
 # tag image
 docker tag $REPO_NAME:$IMAGE_TAG $REPO_URL:$IMAGE_TAG
