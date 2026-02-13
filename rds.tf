@@ -27,10 +27,13 @@ resource "aws_security_group" "rds_sg" {
   }
 }
 
-# DB subnet group
+# DB subnet group (includes both public and private subnets during migration)
 resource "aws_db_subnet_group" "litellm_db_subnet_group" {
   name       = "litellm-db-subnet-group"
   subnet_ids = [
+    aws_subnet.private_az1.id,
+    aws_subnet.private_az2.id,
+    aws_subnet.private_az3.id,
     aws_default_subnet.ecs_az1.id,
     aws_default_subnet.ecs_az2.id,
     aws_default_subnet.ecs_az3.id

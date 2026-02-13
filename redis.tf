@@ -27,10 +27,13 @@ resource "aws_security_group" "redis_sg" {
   }
 }
 
-# ElastiCache subnet group
+# ElastiCache subnet group (includes both public and private subnets during migration)
 resource "aws_elasticache_subnet_group" "litellm_redis_subnet_group" {
   name       = "litellm-redis-subnet-group"
   subnet_ids = [
+    aws_subnet.private_az1.id,
+    aws_subnet.private_az2.id,
+    aws_subnet.private_az3.id,
     aws_default_subnet.ecs_az1.id,
     aws_default_subnet.ecs_az2.id,
     aws_default_subnet.ecs_az3.id

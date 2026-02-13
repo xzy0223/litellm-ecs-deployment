@@ -6,13 +6,7 @@ resource "aws_security_group" "ecs_tasks" {
   description = "Security group for LiteLLM ECS tasks"
   vpc_id      = aws_default_vpc.ecs-vpc.id
 
-  ingress {
-    description = "HTTP from anywhere"
-    from_port   = 4000
-    to_port     = 4000
-    protocol    = "tcp"
-    cidr_blocks = ["0.0.0.0/0"]
-  }
+  # No ingress rules here - only allow traffic from ALB via aws_security_group_rule.ecs_from_alb in alb.tf
 
   egress {
     description = "Allow all outbound traffic"

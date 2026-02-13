@@ -8,12 +8,12 @@ resource "aws_ecs_service" "litellm_service" {
 
   network_configuration {
     subnets          = [
-      aws_default_subnet.ecs_az1.id,
-      aws_default_subnet.ecs_az2.id,
-      aws_default_subnet.ecs_az3.id
+      aws_subnet.private_az1.id,
+      aws_subnet.private_az2.id,
+      aws_subnet.private_az3.id
     ]
     security_groups  = [aws_security_group.ecs_tasks.id]
-    assign_public_ip = true
+    assign_public_ip = false  # Private subnet - no public IP needed
   }
 
   load_balancer {
@@ -30,7 +30,8 @@ resource "aws_ecs_service" "litellm_service" {
   depends_on = [
     aws_iam_role_policy_attachment.litellm_task_execution_role_policy,
     aws_db_instance.litellm_db,
-    aws_elasticache_cluster.litellm_redis
+    aws_elasticache_cluster.litellm_redis,
+    aws_nat_gateway.main  # Ensure NAT Gateway is ready for private subnet connectivity
   ]
 
   tags = {
