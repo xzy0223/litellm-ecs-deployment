@@ -6,14 +6,10 @@ litellm_settings:
     port: os.environ/REDIS_PORT
     ttl: 600  # cache for 10 minutes
 
-model_list:
-  - model_name: claude-bedrock
-    litellm_params:
-      model: os.environ/BEDROCK_MODEL_ID  # e.g., bedrock/anthropic.claude-3-5-sonnet-20241022-v2:0
-      aws_region_name: os.environ/AWS_REGION  # e.g., us-west-2
-      # Using ECS Task IAM Role for authentication (no explicit credentials needed)
-    model_info:
-      supports_computer_use: True
+# No model_list defined here - configure models via Web UI
+# UI allows adding models dynamically:
+# - Bedrock models (uses ECS Task IAM Role for authentication)
+# - OpenAI, Anthropic, Azure, etc. (provide API keys in UI)
 
 general_settings:
   master_key: os.environ/LITELLM_MASTER_KEY

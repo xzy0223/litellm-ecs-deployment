@@ -63,14 +63,6 @@ resource "aws_ecs_task_definition" "litellm_task" {
       {
         "name": "UI_PASSWORD",
         "value": "admin123"
-      },
-      {
-        "name": "BEDROCK_MODEL_ID",
-        "value": "bedrock/anthropic.claude-3-5-sonnet-20241022-v2:0"
-      },
-      {
-        "name": "AWS_REGION",
-        "value": "us-west-2"
       }
     ]
   }

@@ -44,4 +44,4 @@ terraform.rc
 # planout
 
 # Environment variables
-.env
+.env.vscode/
