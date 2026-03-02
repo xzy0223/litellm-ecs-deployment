@@ -50,6 +50,17 @@ resource "aws_iam_role_policy" "litellm_bedrock_permissions" {
           "cloudwatch:PutMetricData"
         ]
         Resource = "*"
+      },
+      # SSM permissions for ECS Exec
+      {
+        Effect = "Allow"
+        Action = [
+          "ssmmessages:CreateControlChannel",
+          "ssmmessages:CreateDataChannel",
+          "ssmmessages:OpenControlChannel",
+          "ssmmessages:OpenDataChannel"
+        ]
+        Resource = "*"
       }
     ]
   })

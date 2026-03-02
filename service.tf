@@ -22,6 +22,8 @@ resource "aws_ecs_service" "litellm_service" {
     container_port   = 4000
   }
 
+  enable_execute_command = true
+
   health_check_grace_period_seconds = 300
 
   deployment_maximum_percent         = 200

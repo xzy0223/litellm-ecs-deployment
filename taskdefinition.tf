@@ -34,11 +34,11 @@ resource "aws_ecs_task_definition" "litellm_task" {
     "environment": [
       {
         "name": "LITELLM_SALT_KEY",
-        "value": "sk-21341412"
+        "value": "sk-${random_id.litellm_salt_key.hex}"
       },
       {
         "name": "LITELLM_MASTER_KEY",
-        "value": "sk-1234"
+        "value": "sk-${random_id.litellm_master_key.hex}"
       },
       {
         "name": "DATABASE_URL",
@@ -62,7 +62,11 @@ resource "aws_ecs_task_definition" "litellm_task" {
       },
       {
         "name": "UI_PASSWORD",
-        "value": "admin123"
+        "value": "${random_password.ui_password.result}"
+      },
+      {
+        "name": "STORE_MODEL_IN_DB",
+        "value": "True"
       }
     ]
   }

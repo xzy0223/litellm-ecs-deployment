@@ -59,11 +59,12 @@ resource "aws_security_group" "alb_sg" {
   vpc_id      = aws_default_vpc.ecs-vpc.id
 
   ingress {
-    description = "HTTP from anywhere"
-    from_port   = 80
-    to_port     = 80
-    protocol    = "tcp"
-    cidr_blocks = ["0.0.0.0/0"]
+    description      = "HTTP from my IP only"
+    from_port        = 80
+    to_port          = 80
+    protocol         = "tcp"
+    cidr_blocks      = ["54.240.199.100/32", "54.240.199.108/32", "34.160.111.145/32", "52.39.99.195/32"]
+    ipv6_cidr_blocks = ["2001:4860:7:80d::f5/128"]
   }
 
   egress {

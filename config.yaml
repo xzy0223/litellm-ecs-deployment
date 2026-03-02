@@ -1,5 +1,6 @@
 litellm_settings:
   cache: true
+  cache_responses: true  # enable caching for streaming responses
   cache_params:
     type: "redis"
     host: os.environ/REDIS_HOST
