@@ -73,10 +73,12 @@ terraform plan -var="aws_region=us-west-2"
 
 ### 第二步：（可选）限制访问 IP
 
-编辑 `alb.tf`，在 ALB 安全组的 `ingress` 中替换为你的 IP：
+在 `terraform.tfvars` 中配置允许访问的 IP（默认全开放）：
 
 ```hcl
-cidr_blocks = ["your.ip.address/32"]
+# terraform.tfvars（已在 .gitignore 中，不会提交到 git）
+allowed_cidr_blocks      = ["1.2.3.4/32", "5.6.7.8/32"]
+allowed_ipv6_cidr_blocks = ["2001:db8::1/128"]
 ```
 
 ### 第三步：创建基础设施
@@ -184,7 +186,7 @@ Web UI → Keys → Generate Key，可配置：
 ### 查看日志
 
 ```bash
-aws logs tail /ecs/litellm --follow --region us-east-1
+aws logs tail /ecs/litellm --follow --region <your-region>
 ```
 
 ---
