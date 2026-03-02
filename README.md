@@ -43,13 +43,21 @@ cd litellm-ecs-deployment
 terraform init
 ```
 
-如需修改 AWS Region 或 Profile，编辑 `provider.tf`：
+默认使用 AWS 标准凭证链（环境变量 → `~/.aws/credentials`）。如需指定 region 或 profile，通过变量传入：
 
-```hcl
-provider "aws" {
-  region  = "us-east-1"   # 修改为目标区域
-  profile = "default"      # 修改为你的 AWS Profile
-}
+```bash
+# 方式一：命令行变量
+terraform plan -var="aws_region=us-west-2" -var="aws_profile=my-profile"
+
+# 方式二：创建 terraform.tfvars 文件（不要提交到 git）
+aws_region  = "us-west-2"
+aws_profile = "my-profile"
+
+# 方式三：环境变量（适合 CI/CD）
+export AWS_ACCESS_KEY_ID=...
+export AWS_SECRET_ACCESS_KEY=...
+export AWS_DEFAULT_REGION=us-west-2
+terraform plan
 ```
 
 ### 第二步：（可选）限制访问 IP

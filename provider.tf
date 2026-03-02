@@ -11,7 +11,19 @@ terraform {
     }
 }
 
+variable "aws_region" {
+  description = "AWS region to deploy resources"
+  type        = string
+  default     = "us-east-1"
+}
+
+variable "aws_profile" {
+  description = "AWS CLI profile to use. Leave empty to use environment variables (AWS_ACCESS_KEY_ID, etc.) or instance role."
+  type        = string
+  default     = ""
+}
+
 provider "aws" {
-    region = "us-east-1"
-    profile = "default"
+  region  = var.aws_region
+  profile = var.aws_profile != "" ? var.aws_profile : null
 }
