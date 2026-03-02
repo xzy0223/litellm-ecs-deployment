@@ -1,3 +1,8 @@
+# Dynamically fetch available AZs for the current region
+data "aws_availability_zones" "available" {
+  state = "available"
+}
+
 # VPC
 resource "aws_vpc" "main" {
   cidr_block           = "10.0.0.0/16"
@@ -22,11 +27,11 @@ resource "aws_internet_gateway" "main" {
 resource "aws_subnet" "public_az1" {
   vpc_id                  = aws_vpc.main.id
   cidr_block              = "10.0.1.0/24"
-  availability_zone       = "us-east-1a"
+  availability_zone       = data.aws_availability_zones.available.names[0]
   map_public_ip_on_launch = true
 
   tags = {
-    Name = "litellm-public-subnet-1a"
+    Name = "litellm-public-subnet-az1"
     Type = "public"
   }
 }
@@ -34,11 +39,11 @@ resource "aws_subnet" "public_az1" {
 resource "aws_subnet" "public_az2" {
   vpc_id                  = aws_vpc.main.id
   cidr_block              = "10.0.2.0/24"
-  availability_zone       = "us-east-1b"
+  availability_zone       = data.aws_availability_zones.available.names[1]
   map_public_ip_on_launch = true
 
   tags = {
-    Name = "litellm-public-subnet-1b"
+    Name = "litellm-public-subnet-az2"
     Type = "public"
   }
 }
@@ -46,11 +51,11 @@ resource "aws_subnet" "public_az2" {
 resource "aws_subnet" "public_az3" {
   vpc_id                  = aws_vpc.main.id
   cidr_block              = "10.0.3.0/24"
-  availability_zone       = "us-east-1c"
+  availability_zone       = data.aws_availability_zones.available.names[2]
   map_public_ip_on_launch = true
 
   tags = {
-    Name = "litellm-public-subnet-1c"
+    Name = "litellm-public-subnet-az3"
     Type = "public"
   }
 }

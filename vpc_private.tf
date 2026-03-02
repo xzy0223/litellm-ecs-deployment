@@ -1,5 +1,6 @@
 # Private Subnets for ECS Tasks, RDS, and Redis
 # Creates private subnets in 3 AZs with NAT Gateway for outbound connectivity
+# AZs are referenced from data.aws_availability_zones.available defined in vpc.tf
 
 # Elastic IP for NAT Gateway
 resource "aws_eip" "nat" {
@@ -26,11 +27,11 @@ resource "aws_nat_gateway" "main" {
 resource "aws_subnet" "private_az1" {
   vpc_id                  = aws_vpc.main.id
   cidr_block              = "10.0.11.0/24"
-  availability_zone       = "us-east-1a"
+  availability_zone       = data.aws_availability_zones.available.names[0]
   map_public_ip_on_launch = false
 
   tags = {
-    Name = "litellm-private-subnet-1a"
+    Name = "litellm-private-subnet-az1"
     Type = "private"
   }
 }
@@ -38,11 +39,11 @@ resource "aws_subnet" "private_az1" {
 resource "aws_subnet" "private_az2" {
   vpc_id                  = aws_vpc.main.id
   cidr_block              = "10.0.12.0/24"
-  availability_zone       = "us-east-1b"
+  availability_zone       = data.aws_availability_zones.available.names[1]
   map_public_ip_on_launch = false
 
   tags = {
-    Name = "litellm-private-subnet-1b"
+    Name = "litellm-private-subnet-az2"
     Type = "private"
   }
 }
@@ -50,11 +51,11 @@ resource "aws_subnet" "private_az2" {
 resource "aws_subnet" "private_az3" {
   vpc_id                  = aws_vpc.main.id
   cidr_block              = "10.0.13.0/24"
-  availability_zone       = "us-east-1c"
+  availability_zone       = data.aws_availability_zones.available.names[2]
   map_public_ip_on_launch = false
 
   tags = {
-    Name = "litellm-private-subnet-1c"
+    Name = "litellm-private-subnet-az3"
     Type = "private"
   }
 }
