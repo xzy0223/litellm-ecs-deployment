@@ -1,208 +1,262 @@
-# Deploy LiteLLM on AWS ECS
+# LiteLLM on AWS ECS Fargate
 
-This project sets up [LiteLLM](https://github.com/BerriAI/litellm) on AWS ECS using Fargate
+基于 Terraform 将 [LiteLLM](https://github.com/BerriAI/litellm) 部署到 AWS ECS Fargate，提供统一的 LLM API 代理网关，支持 Bedrock、OpenAI、Anthropic 等多种模型。
 
-### Tutorial
+## 架构
 
-[🎥 Watch the demo here](https://screen.studio/share/9JRqlF0h)
-
-### Prerequisites
-
-- [AWS CLI](https://aws.amazon.com/cli/) configured with appropriate permissions
-- [Terraform](https://www.terraform.io/) v1.0+
-- [Docker](https://www.docker.com/) with buildx support
-- AWS account with:
-  - ECS, ECR, IAM, VPC, RDS, ElastiCache, Secrets Manager permissions
-
-
-## 🚀 Quick Start
-
-1. **Clone and Setup**
-   ```bash
-   git clone <your-repo-url>
-   cd litellm_ecs-deployment
-   ```
-
-2. **Configure AWS**
-   - Install AWS CLI and configure your credentials
-   - Ensure you have permissions for ECS, ECR, IAM roles, VPC, etc
-
-your cluster should run the task definition in AWS console
-
-### how it works
-
-Simply put, ECS runs litellm this way:
-
-Cluster -> Service -> Task
-
-you can have multiple task definitions / services under one cluster (prod, staging, dev environments)
-
-- use ECS Fargate for serverless container execution (use EC2 if you prefer manual control)
-- build your own docker image and push it to ECR (Elastic Container Registry)
-- store api keys in aws secret manager
-- host on a VPC across different subnets (public / private ip)
-- add an application load balancer (optional)
-- use cloud watch for monitoring container logs
-
-### Infrastructure Components
-
-This deployment includes:
-
-**Database (RDS PostgreSQL)**
-- Managed PostgreSQL database for LiteLLM persistence
-- Automatic backups with 7-day retention
-- Encrypted storage with GP3 volumes
-- Credentials stored in AWS Secrets Manager
-- Connection URL automatically configured in ECS task
-
-**Cache (ElastiCache Redis)**
-- Redis cluster for LiteLLM response caching
-- Reduces latency and API costs by caching repeated requests
-- Automatic failover and backups
-- Connection details automatically configured in task environment
-
-**Security Groups**
-- ECS tasks security group: allows inbound HTTP on port 4000
-- RDS security group: allows PostgreSQL (5432) from ECS tasks only
-- Redis security group: allows Redis (6379) from ECS tasks only
-
-
-### configuration
-
-#### litellm config
-Edit `config.yaml` to configure your LLM providers and settings.
-
-**Redis Caching** is enabled by default with a 10-minute TTL. The configuration in `config.yaml` includes:
-```yaml
-litellm_settings:
-  cache: true
-  cache_params:
-    type: "redis"
-    host: os.environ/REDIS_HOST
-    port: os.environ/REDIS_PORT
-    ttl: 600  # cache for 10 minutes
+```
+Internet → ALB (80) → ECS Fargate (4vCPU / 8GB)
+                           ├── RDS PostgreSQL  (配置/密钥/用量存储)
+                           └── ElastiCache Redis (响应缓存)
 ```
 
-Adjust the `ttl` value to change cache duration (in seconds).
+**基础设施组件：**
 
-### Environment Variables & Secrets
+| 组件 | 规格 | 用途 |
+|------|------|------|
+| ECS Fargate | 4 vCPU / 8 GB | 运行 LiteLLM 容器 |
+| RDS PostgreSQL | db.t3.micro | 存储模型配置、虚拟密钥、用量记录 |
+| ElastiCache Redis | cache.t3.micro | 缓存 LLM 响应，降低延迟和成本 |
+| ALB | - | 负载均衡，Auto Scaling 入口 |
+| ECR | - | 存储 Docker 镜像 |
+| CloudWatch | - | 容器日志与监控指标 |
 
-Environment variables automatically configured in [taskdefinition.tf](taskdefinition.tf):
+---
 
-**Database:**
-- `DATABASE_URL` - PostgreSQL connection string (automatically generated from RDS)
+## 前置条件
 
-**Redis Cache:**
-- `REDIS_HOST` - Redis endpoint (automatically generated from ElastiCache)
-- `REDIS_PORT` - Redis port (automatically generated from ElastiCache)
-- `REDIS_URL` - Full Redis connection string (automatically generated)
+- [AWS CLI](https://aws.amazon.com/cli/) 已配置（`aws configure`）
+- [Terraform](https://www.terraform.io/) v1.0+
+- [Docker](https://www.docker.com/) with buildx 支持
+- AWS 账号具备以下服务权限：ECS、ECR、IAM、VPC、RDS、ElastiCache、Secrets Manager、CloudWatch
 
-**LiteLLM:**
-- `LITELLM_MASTER_KEY` - Master API key (update with your own secure key)
-- `LITELLM_SALT_KEY` - Salt for credential encryption (update with your own secure key)
+---
 
-**API Keys:**
-Store API keys in AWS Secrets Manager via [secrets.tf](secrets.tf). Required secrets:
-- AWS credentials (access key & secret)
-- OpenAI API key
-- Anthropic API key
-- Azure API key
-- Gemini API key
+## 部署流程
 
-These are automatically injected into the container from Secrets Manager.
+### 第一步：初始化 Terraform
 
-### AWS Region & Profile
-Modify `provider.tf` if using different region/profile.
+```bash
+git clone <your-repo-url>
+cd litellm-ecs-deployment
 
-### Cost Considerations
+terraform init
+```
 
-**Default Configuration (us-east-1):**
-- RDS PostgreSQL (db.t3.micro): ~$15-20/month
-- ElastiCache Redis (cache.t3.micro): ~$12-15/month
-- ECS Fargate (4 vCPU, 8GB): ~$0.12/hour (~$90/month for 24/7)
-- Data transfer and storage costs vary by usage
+如需修改 AWS Region 或 Profile，编辑 `provider.tf`：
 
-**Cost Optimization:**
-- Adjust RDS instance size in `rds.tf` (instance_class)
-- Adjust Redis node type in `redis.tf` (node_type)
-- Reduce ECS task CPU/memory in `taskdefinition.tf`
-- Use scheduled scaling for non-production environments
-- Enable RDS Multi-AZ for production (increases cost but adds availability)
+```hcl
+provider "aws" {
+  region  = "us-east-1"   # 修改为目标区域
+  profile = "default"      # 修改为你的 AWS Profile
+}
+```
 
-### build your own image
+### 第二步：（可选）限制访问 IP
 
-## 🚀 Deployment Steps
+编辑 `alb.tf`，在 ALB 安全组的 `ingress` 中替换为你的 IP：
 
-1. **Initialize Terraform**
-   ```bash
-   terraform init
-   ```
+```hcl
+cidr_blocks = ["your.ip.address/32"]
+```
 
-2. **Plan Deployment**
-   ```bash
-   terraform plan
-   ```
+### 第三步：创建基础设施
 
-3. **Apply Infrastructure**
-   ```bash
-   terraform apply
-   ```
+```bash
+terraform plan   # 预览将要创建的资源
+terraform apply  # 确认后输入 yes
+```
 
-4. **Build & Deploy Application**
-   ```bash
-   ./build.sh
-   ```
-   This builds your Docker image on linux/amd64, pushes to ECR and triggers ECS deployment. you can use this command to force an update to ECS service
+> 首次部署约需 10-15 分钟，RDS 启动较慢。
 
-## 🔍 Monitoring
+部署完成后查看访问凭证：
 
-create a new directory in AWS Cloudwatch and add it to [taskdefinition.tf](taskdefinition.tf)
+```bash
+# 获取 ALB 访问地址
+terraform output alb_dns_name
 
-example: "awslogs-group": "/ecs/litellm",
+# 获取 Master Key（API 调用凭证）
+terraform output litellm_master_key
 
-view logs in cloudwatch 
-- **Service Status**: Check ECS console or use AWS CLI
-- **Load Balancer**: Monitor ALB metrics in CloudWatch
+# 获取 UI 管理密码
+terraform output ui_password
+```
 
-## 🛠️ Troubleshooting
+### 第四步：构建并推送 Docker 镜像
 
-### Terraform Issues
-- Run `terraform validate` to check syntax
-- Use `terraform state list` to inspect resources
+```bash
+./build.sh
+# 或指定 region 和 profile
+./build.sh us-east-1 your-profile
+```
 
-### Prod
+此脚本会：
+1. 构建 `linux/amd64` 平台镜像
+2. 推送到 ECR
+3. 触发 ECS 强制重新部署
 
-- API keys are stored in AWS Secrets Manager
-- For production: Add SSL certificate, restrict IP ranges, use WAF
+等待约 2-3 分钟，ECS 任务启动完成后即可访问。
 
-## Scaling
+### 第五步：开通 Bedrock 模型访问（如使用 Bedrock）
 
-- **Scaling**:
-	- Adjust `desired_count` in `service.tf`
-	- Set cpu = num_workers
-	- Don't use static memory limits when you configure CPUs to scale
+```
+AWS Console → Amazon Bedrock → 模型访问 → 申请开通 Claude 系列模型
+```
 
-- **Resources**: Modify CPU/memory in `taskdefinition.tf`
-- **Networking**: Update VPC/subnets in `vpc.tf`
-- **Health Checks**: Configure in ALB target group
+---
 
-## Infrastructure Files
+## 使用流程
 
-### New Files (added in this fork)
-- `rds.tf` - RDS PostgreSQL database configuration
-- `redis.tf` - ElastiCache Redis cluster configuration
-- `security_groups.tf` - Security groups for ECS, RDS, and Redis
+### 访问 Web UI
 
-### Modified Files
-- `taskdefinition.tf` - Added DATABASE_URL, REDIS_HOST, REDIS_PORT, REDIS_URL environment variables
-- `config.yaml` - Added Redis caching configuration
-- `service.tf` - Added security group and dependencies on RDS/Redis
-- `provider.tf` - Added random provider for password generation
-- `cloudwatch.tf` - Fixed resource name syntax
+```
+http://<alb-dns-name>/ui
+```
 
-### Key Features Added
-✅ **Managed PostgreSQL Database**: Automatic provisioning, backups, and secure connection
-✅ **Redis Caching**: Response caching to reduce latency and API costs
-✅ **Security Groups**: Proper network isolation between components
-✅ **Secrets Management**: Database credentials stored in AWS Secrets Manager
-✅ **Auto Configuration**: Database and Redis connection details automatically injected into containers
+使用账号 `admin`，密码通过以下命令获取：
+
+```bash
+terraform output ui_password
+```
+
+### 通过 UI 添加模型
+
+**方式一：Bedrock 模型（推荐，无需 API Key）**
+
+Web UI → Models → Add Model：
+- Model Name：自定义（如 `claude-sonnet`）
+- LiteLLM Model：选择 Bedrock provider
+- Model ID：`bedrock/anthropic.claude-3-7-sonnet-20250219`
+- AWS Region：`us-east-1` 或 `us-west-2`
+- Authentication：**留空**（自动使用 ECS Task IAM Role）
+
+**方式二：OpenAI / Anthropic / Azure**
+
+Web UI → Models → Add Model，填入对应 API Key 即可。
+
+模型添加后**无需重新部署**，立即生效。
+
+### API 调用
+
+```bash
+# 获取 Master Key
+MASTER_KEY=$(terraform output -raw litellm_master_key)
+ALB_DNS=$(terraform output -raw alb_dns_name)
+
+# 发起请求
+curl -X POST http://$ALB_DNS/chat/completions \
+  -H "Authorization: Bearer $MASTER_KEY" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "model": "claude-sonnet",
+    "messages": [{"role": "user", "content": "Hello!"}]
+  }'
+```
+
+### 创建虚拟密钥（多用户/团队）
+
+Web UI → Keys → Generate Key，可配置：
+- 可访问的模型范围
+- 每分钟请求限制
+- 消费预算上限
+
+建议对外分发虚拟密钥，Master Key 仅管理员使用。
+
+### 查看日志
+
+```bash
+aws logs tail /ecs/litellm --follow --region us-east-1
+```
+
+---
+
+## 弹性伸缩
+
+Auto Scaling 已默认配置，无需手动干预：
+
+| 指标 | 触发扩容阈值 | 触发缩容 |
+|------|-------------|---------|
+| CPU | > 70% 持续 1 分钟 | < 70% 持续 5 分钟 |
+| 内存 | > 80% 持续 1 分钟 | < 80% 持续 5 分钟 |
+| 请求数 | > 1000 次/任务/分钟 | 回落后 5 分钟 |
+
+- 最小任务数：1，最大任务数：10
+- 扩容冷却：60 秒，缩容冷却：300 秒
+
+如需调整，编辑 `autoscaling.tf` 后执行 `terraform apply`。
+
+---
+
+## 更新镜像
+
+修改 `Dockerfile` 或 `config.yaml` 后，重新构建推送：
+
+```bash
+./build.sh
+```
+
+ECS 会自动滚动更新，无停机时间。
+
+---
+
+## 销毁流程
+
+> **警告：** 销毁操作不可逆，数据库数据将永久删除。
+
+```bash
+terraform destroy
+```
+
+确认输入 `yes` 后，约 10-20 分钟完成所有资源删除。
+
+销毁完成后清理本地 Terraform 文件：
+
+```bash
+rm -rf .terraform terraform.tfstate terraform.tfstate.backup .terraform.lock.hcl
+```
+
+---
+
+## 费用参考（us-east-1）
+
+| 资源 | 规格 | 月费用（约） |
+|------|------|------------|
+| ECS Fargate（1 任务） | 4 vCPU / 8 GB | ~$32 |
+| RDS PostgreSQL | db.t3.micro | ~$15 |
+| ElastiCache Redis | cache.t3.micro | ~$12 |
+| ALB | - | ~$20 |
+| **合计（最低）** | | **~$79/月** |
+
+Auto Scaling 最多 10 个任务时，ECS 费用可达 ~$324/月。建议非生产环境使用完及时销毁。
+
+---
+
+## 文件说明
+
+| 文件 | 说明 |
+|------|------|
+| `provider.tf` | AWS Provider 配置（region、profile） |
+| `vpc.tf` / `vpc_private.tf` | VPC 与子网 |
+| `security_groups.tf` | 安全组（ECS / RDS / Redis） |
+| `ecr.tf` | ECR 镜像仓库 |
+| `ecs.tf` | ECS 集群 |
+| `taskdefinition.tf` | ECS Task 定义与环境变量 |
+| `service.tf` | ECS Service |
+| `alb.tf` | Application Load Balancer |
+| `rds.tf` | RDS PostgreSQL |
+| `redis.tf` | ElastiCache Redis |
+| `iam.tf` | IAM 角色与权限（含 Bedrock 访问） |
+| `autoscaling.tf` | Auto Scaling 策略 |
+| `secrets.tf` | 动态生成的密钥资源 |
+| `cloudwatch.tf` | CloudWatch 日志组 |
+| `config.yaml` | LiteLLM 配置（缓存等） |
+| `Dockerfile` | 自定义镜像 |
+| `build.sh` | 构建并部署镜像脚本 |
+
+---
+
+## 参考链接
+
+- [LiteLLM 文档](https://docs.litellm.ai/)
+- [Bedrock 模型 ID 列表](https://docs.aws.amazon.com/bedrock/latest/userguide/model-ids.html)
+- [LiteLLM 支持的模型](https://docs.litellm.ai/docs/providers)
