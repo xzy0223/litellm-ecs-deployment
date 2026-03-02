@@ -1,19 +1,6 @@
 # Private Subnets for ECS Tasks, RDS, and Redis
 # Creates private subnets in 3 AZs with NAT Gateway for outbound connectivity
 
-# Get available AZs
-data "aws_availability_zones" "available" {
-  state = "available"
-}
-
-# Internet Gateway (already exists with default VPC, but we reference it)
-data "aws_internet_gateway" "default" {
-  filter {
-    name   = "attachment.vpc-id"
-    values = [aws_default_vpc.ecs-vpc.id]
-  }
-}
-
 # Elastic IP for NAT Gateway
 resource "aws_eip" "nat" {
   domain = "vpc"
@@ -26,19 +13,19 @@ resource "aws_eip" "nat" {
 # NAT Gateway (deployed in public subnet for internet access)
 resource "aws_nat_gateway" "main" {
   allocation_id = aws_eip.nat.id
-  subnet_id     = aws_default_subnet.ecs_az1.id  # Use public subnet
+  subnet_id     = aws_subnet.public_az1.id
 
   tags = {
     Name = "litellm-nat-gateway"
   }
 
-  depends_on = [data.aws_internet_gateway.default]
+  depends_on = [aws_internet_gateway.main]
 }
 
 # Private Subnets (no direct internet access)
 resource "aws_subnet" "private_az1" {
-  vpc_id                  = aws_default_vpc.ecs-vpc.id
-  cidr_block              = "172.31.112.0/20"  # Non-overlapping CIDR range
+  vpc_id                  = aws_vpc.main.id
+  cidr_block              = "10.0.11.0/24"
   availability_zone       = "us-east-1a"
   map_public_ip_on_launch = false
 
@@ -49,8 +36,8 @@ resource "aws_subnet" "private_az1" {
 }
 
 resource "aws_subnet" "private_az2" {
-  vpc_id                  = aws_default_vpc.ecs-vpc.id
-  cidr_block              = "172.31.128.0/20"
+  vpc_id                  = aws_vpc.main.id
+  cidr_block              = "10.0.12.0/24"
   availability_zone       = "us-east-1b"
   map_public_ip_on_launch = false
 
@@ -61,8 +48,8 @@ resource "aws_subnet" "private_az2" {
 }
 
 resource "aws_subnet" "private_az3" {
-  vpc_id                  = aws_default_vpc.ecs-vpc.id
-  cidr_block              = "172.31.144.0/20"
+  vpc_id                  = aws_vpc.main.id
+  cidr_block              = "10.0.13.0/24"
   availability_zone       = "us-east-1c"
   map_public_ip_on_launch = false
 
@@ -74,7 +61,7 @@ resource "aws_subnet" "private_az3" {
 
 # Route table for private subnets (routes through NAT Gateway)
 resource "aws_route_table" "private" {
-  vpc_id = aws_default_vpc.ecs-vpc.id
+  vpc_id = aws_vpc.main.id
 
   route {
     cidr_block     = "0.0.0.0/0"

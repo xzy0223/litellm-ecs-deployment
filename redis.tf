@@ -4,7 +4,7 @@
 resource "aws_security_group" "redis_sg" {
   name        = "litellm-redis-sg"
   description = "Security group for LiteLLM ElastiCache Redis"
-  vpc_id      = aws_default_vpc.ecs-vpc.id
+  vpc_id      = aws_vpc.main.id
 
   ingress {
     description     = "Redis from ECS tasks"
@@ -33,10 +33,7 @@ resource "aws_elasticache_subnet_group" "litellm_redis_subnet_group" {
   subnet_ids = [
     aws_subnet.private_az1.id,
     aws_subnet.private_az2.id,
-    aws_subnet.private_az3.id,
-    aws_default_subnet.ecs_az1.id,
-    aws_default_subnet.ecs_az2.id,
-    aws_default_subnet.ecs_az3.id
+    aws_subnet.private_az3.id
   ]
 
   tags = {

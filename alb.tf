@@ -5,9 +5,9 @@ resource "aws_lb" "litellm_alb" {
   load_balancer_type = "application"
   security_groups    = [aws_security_group.alb_sg.id]
   subnets            = [
-    aws_default_subnet.ecs_az1.id,
-    aws_default_subnet.ecs_az2.id,
-    aws_default_subnet.ecs_az3.id
+    aws_subnet.public_az1.id,
+    aws_subnet.public_az2.id,
+    aws_subnet.public_az3.id
   ]
 
   enable_deletion_protection = false
@@ -22,7 +22,7 @@ resource "aws_lb_target_group" "litellm_tg" {
   name        = "litellm-tg"
   port        = 4000
   protocol    = "HTTP"
-  vpc_id      = aws_default_vpc.ecs-vpc.id
+  vpc_id      = aws_vpc.main.id
   target_type = "ip"
 
   health_check {
@@ -56,7 +56,7 @@ resource "aws_lb_listener" "litellm_http" {
 resource "aws_security_group" "alb_sg" {
   name        = "litellm-alb-sg"
   description = "Security group for LiteLLM ALB"
-  vpc_id      = aws_default_vpc.ecs-vpc.id
+  vpc_id      = aws_vpc.main.id
 
   ingress {
     description      = "HTTP from my IP only"

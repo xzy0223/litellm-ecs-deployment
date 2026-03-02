@@ -4,7 +4,7 @@
 resource "aws_security_group" "ecs_tasks" {
   name        = "litellm-ecs-tasks-sg"
   description = "Security group for LiteLLM ECS tasks"
-  vpc_id      = aws_default_vpc.ecs-vpc.id
+  vpc_id      = aws_vpc.main.id
 
   # No ingress rules here - only allow traffic from ALB via aws_security_group_rule.ecs_from_alb in alb.tf
 

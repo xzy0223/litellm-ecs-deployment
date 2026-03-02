@@ -4,7 +4,7 @@
 resource "aws_security_group" "rds_sg" {
   name        = "litellm-rds-sg"
   description = "Security group for LiteLLM RDS PostgreSQL"
-  vpc_id      = aws_default_vpc.ecs-vpc.id
+  vpc_id      = aws_vpc.main.id
 
   ingress {
     description     = "PostgreSQL from ECS tasks"
@@ -33,10 +33,7 @@ resource "aws_db_subnet_group" "litellm_db_subnet_group" {
   subnet_ids = [
     aws_subnet.private_az1.id,
     aws_subnet.private_az2.id,
-    aws_subnet.private_az3.id,
-    aws_default_subnet.ecs_az1.id,
-    aws_default_subnet.ecs_az2.id,
-    aws_default_subnet.ecs_az3.id
+    aws_subnet.private_az3.id
   ]
 
   tags = {
