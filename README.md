@@ -43,21 +43,32 @@ cd litellm-ecs-deployment
 terraform init
 ```
 
-默认使用 AWS 标准凭证链（环境变量 → `~/.aws/credentials`）。如需指定 region 或 profile，通过变量传入：
+Terraform 按以下顺序自动查找 AWS 凭证，无需额外配置：
 
+1. **环境变量**（适合 CI/CD）
+   ```bash
+   export AWS_ACCESS_KEY_ID=...
+   export AWS_SECRET_ACCESS_KEY=...
+   export AWS_DEFAULT_REGION=us-west-2
+   terraform plan
+   ```
+
+2. **EC2 / ECS Instance Role**（在 AWS 环境中运行 Terraform 时推荐）
+   为运行 Terraform 的 EC2 实例附加具有足够权限的 IAM Role，直接执行即可：
+   ```bash
+   terraform plan
+   ```
+
+3. **本地 AWS CLI Profile**（本地开发）
+   ```bash
+   terraform plan -var="aws_profile=my-profile"
+   # 或创建 terraform.tfvars（已在 .gitignore 中，不会提交）
+   # aws_profile = "my-profile"
+   ```
+
+如需切换 region：
 ```bash
-# 方式一：命令行变量
-terraform plan -var="aws_region=us-west-2" -var="aws_profile=my-profile"
-
-# 方式二：创建 terraform.tfvars 文件（不要提交到 git）
-aws_region  = "us-west-2"
-aws_profile = "my-profile"
-
-# 方式三：环境变量（适合 CI/CD）
-export AWS_ACCESS_KEY_ID=...
-export AWS_SECRET_ACCESS_KEY=...
-export AWS_DEFAULT_REGION=us-west-2
-terraform plan
+terraform plan -var="aws_region=us-west-2"
 ```
 
 ### 第二步：（可选）限制访问 IP
