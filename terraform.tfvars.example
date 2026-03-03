@@ -1,0 +1,32 @@
+# Copy this file to terraform.tfvars and fill in actual values.
+# terraform.tfvars is git-ignored and will NOT be committed.
+
+# AWS region and credentials
+aws_region  = "us-east-1"
+aws_profile = ""  # leave empty to use environment variables or instance role
+
+# ALB IP whitelist (restrict to your office/VPN CIDRs in production)
+allowed_cidr_blocks      = ["0.0.0.0/0"]
+allowed_ipv6_cidr_blocks = []
+
+# ECS task resources
+# Fargate valid CPU/memory combinations: https://docs.aws.amazon.com/AmazonECS/latest/developerguide/task-cpu-memory-error.html
+# cpu:  256 | 512 | 1024 | 2048 | 4096
+# memory must be compatible with chosen cpu value
+ecs_cpu    = 4096
+ecs_memory = 8192
+
+# RDS PostgreSQL instance class
+# dev/test:    db.t3.micro, db.t3.small
+# production:  db.t3.medium, db.m6g.large, db.r6g.large
+rds_instance_class = "db.t3.micro"
+
+# ElastiCache Redis node type
+# dev/test:    cache.t3.micro, cache.t3.small
+# production:  cache.t3.medium, cache.m6g.large, cache.r6g.large
+elasticache_node_type = "cache.t3.micro"
+
+# Bedrock API Keys for LiteLLM load balancing
+bedrock_api_key_1 = "your_key"
+bedrock_api_key_2 = "your_key"
+bedrock_api_key_3 = "your_key"
