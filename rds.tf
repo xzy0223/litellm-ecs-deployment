@@ -67,7 +67,7 @@ resource "aws_db_instance" "litellm_db" {
   identifier             = "litellm-postgres-db"
   engine                 = "postgres"
   engine_version         = "16.11"
-  instance_class         = "db.t3.micro"
+  instance_class         = var.rds_instance_class
   allocated_storage      = 20
   max_allocated_storage  = 100
   storage_type           = "gp3"

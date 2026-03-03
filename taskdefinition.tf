@@ -2,8 +2,8 @@ resource "aws_ecs_task_definition" "litellm_task" {
   family                   = "litellm_task"
   requires_compatibilities = ["FARGATE"] #EC2
   network_mode            = "awsvpc"
-  cpu                     = 4096
-  memory                  = 8192
+  cpu                     = var.ecs_cpu
+  memory                  = var.ecs_memory
   execution_role_arn      = aws_iam_role.litellm_task_execution_role.arn
   task_role_arn           = aws_iam_role.litellm_task_role.arn
 
@@ -20,14 +20,14 @@ resource "aws_ecs_task_definition" "litellm_task" {
         "protocol": "tcp"
       }
     ],
-    "memory": 8192,
-    "cpu": 4096,
+    "memory": ${var.ecs_memory},
+    "cpu": ${var.ecs_cpu},
     "networkMode": "awsvpc",
     "logConfiguration": {
       "logDriver": "awslogs",
       "options": {
         "awslogs-group": "/ecs/litellm",
-        "awslogs-region": "us-east-1",
+        "awslogs-region": "${var.aws_region}",
         "awslogs-stream-prefix": "ecs"
       }
     },
@@ -67,6 +67,20 @@ resource "aws_ecs_task_definition" "litellm_task" {
       {
         "name": "STORE_MODEL_IN_DB",
         "value": "True"
+      }
+    ],
+    "secrets": [
+      {
+        "name": "BEDROCK_API_KEY_1",
+        "valueFrom": "${aws_secretsmanager_secret.bedrock_api_key_1.arn}"
+      },
+      {
+        "name": "BEDROCK_API_KEY_2",
+        "valueFrom": "${aws_secretsmanager_secret.bedrock_api_key_2.arn}"
+      },
+      {
+        "name": "BEDROCK_API_KEY_3",
+        "valueFrom": "${aws_secretsmanager_secret.bedrock_api_key_3.arn}"
       }
     ]
   }

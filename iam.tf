@@ -9,6 +9,26 @@ resource "aws_iam_role_policy_attachment" "litellm_task_execution_role_policy" {
   policy_arn = "arn:aws:iam::aws:policy/service-role/AmazonECSTaskExecutionRolePolicy"
 }
 
+resource "aws_iam_role_policy" "litellm_secrets_policy" {
+  name = "LiteLLMSecretsPolicy"
+  role = aws_iam_role.litellm_task_execution_role.id
+
+  policy = jsonencode({
+    Version = "2012-10-17"
+    Statement = [
+      {
+        Effect = "Allow"
+        Action = ["secretsmanager:GetSecretValue"]
+        Resource = [
+          aws_secretsmanager_secret.bedrock_api_key_1.arn,
+          aws_secretsmanager_secret.bedrock_api_key_2.arn,
+          aws_secretsmanager_secret.bedrock_api_key_3.arn,
+        ]
+      }
+    ]
+  })
+}
+
 # ECS Task Role (for application to access AWS services like Bedrock)
 resource "aws_iam_role" "litellm_task_role" {
   name               = "litellmTaskRole"

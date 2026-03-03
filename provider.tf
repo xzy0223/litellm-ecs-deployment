@@ -35,6 +35,48 @@ variable "allowed_ipv6_cidr_blocks" {
   default     = []
 }
 
+variable "ecs_cpu" {
+  description = "ECS task CPU units (1024 = 1 vCPU)"
+  type        = number
+  default     = 4096
+}
+
+variable "ecs_memory" {
+  description = "ECS task memory in MB"
+  type        = number
+  default     = 8192
+}
+
+variable "rds_instance_class" {
+  description = "RDS PostgreSQL instance class"
+  type        = string
+  default     = "db.t3.micro"
+}
+
+variable "elasticache_node_type" {
+  description = "ElastiCache Redis node type"
+  type        = string
+  default     = "cache.t3.micro"
+}
+
+variable "bedrock_api_key_1" {
+  description = "Bedrock API Key 1 for LiteLLM load balancing"
+  type        = string
+  sensitive   = true
+}
+
+variable "bedrock_api_key_2" {
+  description = "Bedrock API Key 2 for LiteLLM load balancing"
+  type        = string
+  sensitive   = true
+}
+
+variable "bedrock_api_key_3" {
+  description = "Bedrock API Key 3 for LiteLLM load balancing"
+  type        = string
+  sensitive   = true
+}
+
 provider "aws" {
   region  = var.aws_region
   profile = var.aws_profile != "" ? var.aws_profile : null

@@ -46,7 +46,7 @@ resource "aws_elasticache_cluster" "litellm_redis" {
   cluster_id           = "litellm-redis"
   engine               = "redis"
   engine_version       = "7.1"
-  node_type            = "cache.t3.micro"
+  node_type            = var.elasticache_node_type
   num_cache_nodes      = 1
   parameter_group_name = "default.redis7"
   port                 = 6379
