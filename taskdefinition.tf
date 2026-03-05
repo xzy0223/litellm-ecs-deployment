@@ -68,20 +68,6 @@ resource "aws_ecs_task_definition" "litellm_task" {
         "name": "STORE_MODEL_IN_DB",
         "value": "True"
       }
-    ],
-    "secrets": [
-      {
-        "name": "BEDROCK_API_KEY_1",
-        "valueFrom": "${aws_secretsmanager_secret.bedrock_api_key_1.arn}"
-      },
-      {
-        "name": "BEDROCK_API_KEY_2",
-        "valueFrom": "${aws_secretsmanager_secret.bedrock_api_key_2.arn}"
-      },
-      {
-        "name": "BEDROCK_API_KEY_3",
-        "valueFrom": "${aws_secretsmanager_secret.bedrock_api_key_3.arn}"
-      }
     ]
   }
 ]

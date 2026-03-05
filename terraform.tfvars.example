@@ -25,8 +25,3 @@ rds_instance_class = "db.t3.micro"
 # dev/test:    cache.t3.micro, cache.t3.small
 # production:  cache.t3.medium, cache.m6g.large, cache.r6g.large
 elasticache_node_type = "cache.t3.micro"
-
-# Bedrock API Keys for LiteLLM load balancing
-bedrock_api_key_1 = "your_key"
-bedrock_api_key_2 = "your_key"
-bedrock_api_key_3 = "your_key"

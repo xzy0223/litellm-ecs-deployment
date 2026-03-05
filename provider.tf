@@ -59,24 +59,6 @@ variable "elasticache_node_type" {
   default     = "cache.t3.micro"
 }
 
-variable "bedrock_api_key_1" {
-  description = "Bedrock API Key 1 for LiteLLM load balancing"
-  type        = string
-  sensitive   = true
-}
-
-variable "bedrock_api_key_2" {
-  description = "Bedrock API Key 2 for LiteLLM load balancing"
-  type        = string
-  sensitive   = true
-}
-
-variable "bedrock_api_key_3" {
-  description = "Bedrock API Key 3 for LiteLLM load balancing"
-  type        = string
-  sensitive   = true
-}
-
 provider "aws" {
   region  = var.aws_region
   profile = var.aws_profile != "" ? var.aws_profile : null

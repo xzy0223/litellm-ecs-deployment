@@ -8,34 +8,7 @@ litellm_settings:
     port: os.environ/REDIS_PORT
     ttl: 600  # cache for 10 minutes
 
-model_list:
-  # claude-sonnet-4-6 load balancing across multiple Bedrock credentials
-  # simple-shuffle randomly picks a deployment on each request
-  - model_name: claude-sonnet-4-6
-    litellm_params:
-      model: bedrock/global.anthropic.claude-sonnet-4-6
-      api_key: os.environ/BEDROCK_API_KEY_1
-      aws_region_name: us-east-1
-    model_info:
-      id: claude-sonnet-4-6-bedrock-1
-
-  - model_name: claude-sonnet-4-6
-    litellm_params:
-      model: bedrock/global.anthropic.claude-sonnet-4-6
-      api_key: os.environ/BEDROCK_API_KEY_2
-      aws_region_name: us-east-1
-    model_info:
-      id: claude-sonnet-4-6-bedrock-2
-
-  - model_name: claude-sonnet-4-6
-    litellm_params:
-      model: bedrock/global.anthropic.claude-sonnet-4-6
-      api_key: os.environ/BEDROCK_API_KEY_3
-      aws_region_name: us-east-1
-    model_info:
-      id: claude-sonnet-4-6-bedrock-3
-
-  # Add more keys by duplicating a block above and incrementing the env var index
+model_list: []
 
 router_settings:
   routing_strategy: simple-shuffle   # randomly pick a deployment on each request
