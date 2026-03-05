@@ -11,6 +11,7 @@ resource "aws_lb" "litellm_alb" {
   ]
 
   enable_deletion_protection = false
+  idle_timeout               = 660
 
   tags = {
     Name = "litellm-alb"
